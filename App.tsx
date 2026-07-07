@@ -58,7 +58,10 @@ function App() {
       title: 'CloudNav - 我的导航',
       navTitle: '云航 CloudNav',
       favicon: '',
-      cardStyle: 'detailed'
+      cardStyle: 'detailed',
+      theme: 'default',
+      glassOpacity: 70,
+      backgroundImage: ''
   });
   
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -508,6 +511,7 @@ function App() {
       ) : link.title.charAt(0);
       
       const isSimple = siteSettings.cardStyle === 'simple';
+      const isGlass = siteSettings.theme === 'glass';
 
       return (
         <a
@@ -526,7 +530,7 @@ function App() {
                 setContextMenu({ x, y, link });
                 return false;
             }}
-            className={`group relative flex flex-col ${isSimple ? 'p-2' : 'p-3'} bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700/50 shadow-sm hover:shadow-lg hover:border-blue-200 dark:hover:border-slate-600 hover:-translate-y-0.5 transition-all duration-200 hover:bg-blue-50 dark:hover:bg-slate-750`}
+            className={`group relative flex flex-col ${isSimple ? 'p-2' : 'p-3'} ${isGlass ? 'bg-white/70 dark:bg-slate-900/55 backdrop-blur-xl' : 'bg-white dark:bg-slate-800'} rounded-xl border border-slate-100/80 dark:border-slate-700/50 shadow-sm hover:shadow-lg hover:border-blue-200 dark:hover:border-slate-600 hover:-translate-y-0.5 transition-all duration-200 hover:bg-blue-50/80 dark:hover:bg-slate-750`}
             title={link.description || link.url}
         >
             <div className={`flex items-center gap-3 ${isSimple ? '' : 'mb-1.5'} pr-6`}>
@@ -546,8 +550,24 @@ function App() {
       );
   };
 
+  const isGlassTheme = siteSettings.theme === 'glass';
+  const glassOpacity = Math.max(10, Math.min(100, siteSettings.glassOpacity ?? 70));
+  const glassStyle = isGlassTheme ? ({
+      '--glass-bg': `rgba(255,255,255,${glassOpacity / 100})`,
+      '--glass-bg-dark': `rgba(15,23,42,${Math.max(0.35, glassOpacity / 120)})`
+  } as React.CSSProperties) : undefined;
+
   return (
-    <div className="flex h-screen overflow-hidden text-slate-900 dark:text-slate-50">
+    <div
+      className="flex h-screen overflow-hidden text-slate-900 dark:text-slate-50 bg-slate-50 dark:bg-slate-900"
+      style={{
+        ...glassStyle,
+        backgroundImage: siteSettings.backgroundImage ? `url("${siteSettings.backgroundImage}")` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       
       {/* Right Click Context Menu */}
       {contextMenu && (
@@ -663,7 +683,7 @@ function App() {
       <aside 
         className={`
           fixed lg:static inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out
-          bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col
+          ${isGlassTheme ? 'bg-[var(--glass-bg)] dark:bg-[var(--glass-bg-dark)] backdrop-blur-2xl' : 'bg-white dark:bg-slate-800'} border-r border-slate-200/80 dark:border-slate-700/80 flex flex-col
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
@@ -779,9 +799,9 @@ function App() {
 
       <main 
           ref={mainRef}
-          className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-900 overflow-y-auto relative scroll-smooth"
+          className={`flex-1 flex flex-col h-full ${isGlassTheme ? 'bg-transparent' : 'bg-slate-50 dark:bg-slate-900'} overflow-y-auto relative scroll-smooth`}
       >
-        <header className="h-16 px-4 lg:px-8 flex items-center justify-between bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shrink-0">
+        <header className={`h-16 px-4 lg:px-8 flex items-center justify-between ${isGlassTheme ? 'bg-[var(--glass-bg)] dark:bg-[var(--glass-bg-dark)] backdrop-blur-2xl' : 'bg-white/80 dark:bg-slate-800/80 backdrop-blur-md'} border-b border-slate-200/80 dark:border-slate-700/80 sticky top-0 z-30 shrink-0`}>
           <div className="flex items-center gap-4 flex-1">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-slate-600 dark:text-slate-300">
               <Menu size={24} />
