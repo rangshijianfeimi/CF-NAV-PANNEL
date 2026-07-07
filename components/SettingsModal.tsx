@@ -61,7 +61,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       title: siteSettings?.title || 'CloudNav - 我的导航',
       navTitle: siteSettings?.navTitle || 'CloudNav',
       favicon: siteSettings?.favicon || '',
-      cardStyle: siteSettings?.cardStyle || 'detailed'
+      cardStyle: siteSettings?.cardStyle || 'detailed',
+      theme: siteSettings?.theme || 'default',
+      glassOpacity: siteSettings?.glassOpacity ?? 70,
+      backgroundImage: siteSettings?.backgroundImage || ''
   }));
   
   const [generatedIcons, setGeneratedIcons] = useState<string[]>([]);
@@ -105,7 +108,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           title: siteSettings?.title || 'CloudNav - 我的导航',
           navTitle: siteSettings?.navTitle || 'CloudNav',
           favicon: siteSettings?.favicon || '',
-          cardStyle: siteSettings?.cardStyle || 'detailed'
+          cardStyle: siteSettings?.cardStyle || 'detailed',
+          theme: siteSettings?.theme || 'default',
+          glassOpacity: siteSettings?.glassOpacity ?? 70,
+          backgroundImage: siteSettings?.backgroundImage || ''
       };
       setLocalSiteSettings(safeSettings);
       if (generatedIcons.length === 0) {
@@ -128,7 +134,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     setLocalConfig(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSiteChange = (key: keyof SiteSettings, value: string) => {
+  const handleSiteChange = <K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) => {
     setLocalSiteSettings(prev => {
         const next = { ...prev, [key]: value };
         return next;
@@ -959,6 +965,45 @@ document.addEventListener('DOMContentLoaded', async () => {
                                             </button>
                                         ))}
                                     </div>
+                                </div>
+                            </div>
+                            <div className="pt-4 border-t border-slate-100 dark:border-slate-700 space-y-4">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">毛玻璃主题</label>
+                                        <p className="text-xs text-slate-500 mt-1">开启后页面面板会带透明磨砂效果</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSiteChange('theme', localSiteSettings.theme === 'glass' ? 'default' : 'glass')}
+                                        className={`relative w-12 h-6 rounded-full transition-colors ${localSiteSettings.theme === 'glass' ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'}`}
+                                    >
+                                        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${localSiteSettings.theme === 'glass' ? 'translate-x-7' : 'translate-x-1'}`} />
+                                    </button>
+                                </div>
+                                <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">毛玻璃透明度</label>
+                                        <span className="text-xs text-slate-500">{localSiteSettings.glassOpacity ?? 70}%</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="10"
+                                        max="100"
+                                        value={localSiteSettings.glassOpacity ?? 70}
+                                        onChange={(e) => handleSiteChange('glassOpacity', Number(e.target.value))}
+                                        className="w-full accent-blue-600"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">自定义图片背景 URL</label>
+                                    <input
+                                        type="text"
+                                        value={localSiteSettings.backgroundImage || ''}
+                                        onChange={(e) => handleSiteChange('backgroundImage', e.target.value)}
+                                        placeholder="https://example.com/background.jpg"
+                                        className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
                                 </div>
                             </div>
                         </div>
