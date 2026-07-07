@@ -530,19 +530,19 @@ function App() {
                 setContextMenu({ x, y, link });
                 return false;
             }}
-            className={`group relative flex flex-col ${isSimple ? 'p-2' : 'p-3'} ${isGlass ? 'bg-white/70 dark:bg-slate-900/55 backdrop-blur-xl' : 'bg-white dark:bg-slate-800'} rounded-xl border border-slate-100/80 dark:border-slate-700/50 shadow-sm hover:shadow-lg hover:border-blue-200 dark:hover:border-slate-600 hover:-translate-y-0.5 transition-all duration-200 hover:bg-blue-50/80 dark:hover:bg-slate-750`}
+            className={`group relative flex flex-col ${isSimple ? 'p-2' : 'p-3'} ${isGlass ? 'glass-card text-white shadow-black/20 hover:bg-white/20' : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-750'} rounded-xl hover:shadow-lg hover:border-blue-200 dark:hover:border-slate-600 hover:-translate-y-0.5 transition-all duration-200`}
             title={link.description || link.url}
         >
             <div className={`flex items-center gap-3 ${isSimple ? '' : 'mb-1.5'} pr-6`}>
-                <div className={`${isSimple ? 'w-6 h-6 text-xs' : 'w-8 h-8 text-sm'} rounded-lg bg-slate-50 dark:bg-slate-700 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold uppercase shrink-0 overflow-hidden`}>
+                <div className={`${isSimple ? 'w-6 h-6 text-xs' : 'w-8 h-8 text-sm'} rounded-lg ${isGlass ? 'bg-white/15 text-white ring-1 ring-white/15' : 'bg-slate-50 dark:bg-slate-700 text-blue-600 dark:text-blue-400'} flex items-center justify-center font-bold uppercase shrink-0 overflow-hidden`}>
                     {iconDisplay}
                 </div>
-                <h3 className="font-medium text-sm text-slate-800 dark:text-slate-200 truncate flex-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <h3 className={`font-medium text-sm truncate flex-1 transition-colors ${isGlass ? 'text-white drop-shadow-sm group-hover:text-blue-100' : 'text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400'}`}>
                     {link.title}
                 </h3>
             </div>
             {!isSimple && (
-                <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 h-4 w-full overflow-hidden">
+                <div className={`text-xs line-clamp-1 h-4 w-full overflow-hidden ${isGlass ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'}`}>
                     {link.description || <span className="opacity-0">.</span>}
                 </div>
             )}
@@ -552,9 +552,13 @@ function App() {
 
   const isGlassTheme = siteSettings.theme === 'glass';
   const glassOpacity = Math.max(10, Math.min(100, siteSettings.glassOpacity ?? 70));
+  const glassAlpha = glassOpacity / 100;
   const glassStyle = isGlassTheme ? ({
-      '--glass-bg': `rgba(255,255,255,${glassOpacity / 100})`,
-      '--glass-bg-dark': `rgba(15,23,42,${Math.max(0.35, glassOpacity / 120)})`
+      '--glass-bg': `rgba(22,25,38,${Math.max(0.32, glassAlpha * 0.72)})`,
+      '--glass-card-bg': `rgba(255,255,255,${Math.max(0.10, glassAlpha * 0.28)})`,
+      '--glass-border': `rgba(255,255,255,${Math.max(0.16, glassAlpha * 0.34)})`,
+      '--glass-shadow': `0 18px 46px rgba(0,0,0,${Math.max(0.22, glassAlpha * 0.34)}), inset 0 1px 0 rgba(255,255,255,0.18)`,
+      '--glass-blur': `${Math.round(10 + glassAlpha * 18)}px`
   } as React.CSSProperties) : undefined;
 
   return (
@@ -568,6 +572,7 @@ function App() {
         backgroundAttachment: 'fixed'
       }}
     >
+      {isGlassTheme && <div className="fixed inset-0 pointer-events-none glass-veil" />}
       
       {/* Right Click Context Menu */}
       {contextMenu && (
@@ -683,7 +688,7 @@ function App() {
       <aside 
         className={`
           fixed lg:static inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out
-          ${isGlassTheme ? 'bg-[var(--glass-bg)] dark:bg-[var(--glass-bg-dark)] backdrop-blur-2xl' : 'bg-white dark:bg-slate-800'} border-r border-slate-200/80 dark:border-slate-700/80 flex flex-col
+          ${isGlassTheme ? 'glass-panel text-white border-white/15' : 'bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700'} flex flex-col
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
@@ -801,7 +806,7 @@ function App() {
           ref={mainRef}
           className={`flex-1 flex flex-col h-full ${isGlassTheme ? 'bg-transparent' : 'bg-slate-50 dark:bg-slate-900'} overflow-y-auto relative scroll-smooth`}
       >
-        <header className={`h-16 px-4 lg:px-8 flex items-center justify-between ${isGlassTheme ? 'bg-[var(--glass-bg)] dark:bg-[var(--glass-bg-dark)] backdrop-blur-2xl' : 'bg-white/80 dark:bg-slate-800/80 backdrop-blur-md'} border-b border-slate-200/80 dark:border-slate-700/80 sticky top-0 z-30 shrink-0`}>
+        <header className={`h-16 px-4 lg:px-8 flex items-center justify-between ${isGlassTheme ? 'glass-panel text-white border-white/15' : 'bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700'} sticky top-0 z-30 shrink-0`}>
           <div className="flex items-center gap-4 flex-1">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-slate-600 dark:text-slate-300">
               <Menu size={24} />
