@@ -971,7 +971,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 <div className="flex items-center justify-between gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">毛玻璃主题</label>
-                                        <p className="text-xs text-slate-500 mt-1">开启后页面面板会带透明磨砂效果</p>
+                                        <p className="text-xs text-slate-500 mt-1">开启后页面面板会带深色磨砂、描边和高光效果</p>
                                     </div>
                                     <button
                                         type="button"
@@ -983,7 +983,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 </div>
                                 <div>
                                     <div className="flex items-center justify-between mb-1">
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">毛玻璃透明度</label>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">毛玻璃浓度</label>
                                         <span className="text-xs text-slate-500">{localSiteSettings.glassOpacity ?? 70}%</span>
                                     </div>
                                     <input
