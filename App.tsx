@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
-  Search, Plus, Upload, Moon, Sun, Menu, 
+  Search, Plus, Upload, Moon, Sun, Menu, PanelLeftClose, PanelLeftOpen,
   Trash2, Edit2, Loader2, Cloud, CheckCircle2, AlertCircle,
-  Pin, Settings, Lock, CloudCog, Github, GitFork, MoreVertical,
+  Pin, Settings, Lock, CloudCog, Github, MoreVertical,
   QrCode, Copy, LayoutGrid, List, Check, ExternalLink, ArrowRight
 } from 'lucide-react';
 import { 
@@ -19,8 +19,6 @@ import CategoryAuthModal from './components/CategoryAuthModal';
 import ImportModal from './components/ImportModal';
 import SettingsModal from './components/SettingsModal';
 import SearchSettingsModal from './components/SearchSettingsModal';
-
-const GITHUB_REPO_URL = 'https://github.com/sese972010/CloudNav-';
 
 const LOCAL_STORAGE_KEY = 'cloudnav_data_cache';
 const AUTH_KEY = 'cloudnav_auth_token';
@@ -52,6 +50,7 @@ function App() {
 
   const [darkMode, setDarkMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   // Site Settings - Initialized with defaults to prevent crash
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
@@ -687,12 +686,12 @@ function App() {
       {/* Sidebar */}
       <aside 
         className={`
-          fixed lg:static inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out
+          fixed lg:static inset-y-0 left-0 z-30 w-64 ${sidebarCollapsed ? 'lg:w-20' : ''} transform transition-all duration-300 ease-in-out
           ${isGlassTheme ? 'glass-panel text-white border-white/15' : 'bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700'} flex flex-col
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
-        <div className="h-16 flex items-center px-6 border-b border-slate-100 dark:border-slate-700 shrink-0 gap-3">
+        <div className={`h-16 flex items-center px-6 ${sidebarCollapsed ? 'lg:px-4 lg:justify-center' : ''} border-b border-slate-100 dark:border-slate-700 shrink-0 gap-3`}>
              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-500/30 overflow-hidden">
                  {siteSettings.favicon ? (
                     <img src={siteSettings.favicon} alt="" className="w-full h-full object-cover" />
@@ -700,26 +699,27 @@ function App() {
                     "C"
                  )}
              </div>
-            <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent truncate">
+            <span className={`text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent truncate ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
               {siteSettings.navTitle || 'CloudNav'}
             </span>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-1 scrollbar-hide">
+        <div className={`flex-1 overflow-y-auto p-4 ${sidebarCollapsed ? 'lg:p-3' : ''} space-y-1 scrollbar-hide`}>
             <button
               onClick={() => scrollToCategory('all')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              title="全部链接"
+              className={`w-full flex items-center gap-3 px-4 ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} py-3 rounded-xl transition-all ${
                 activeCategory === 'all' 
                   ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium' 
                   : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
               }`}
             >
               <div className="p-1"><Icon name="LayoutGrid" size={18} /></div>
-              <span>全部链接</span>
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>全部链接</span>
             </button>
             
-            <div className="flex items-center justify-between pt-4 pb-2 px-4">
-               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">分类目录</span>
+            <div className={`flex items-center justify-between pt-4 pb-2 px-4 ${sidebarCollapsed ? 'lg:px-0 lg:justify-center' : ''}`}>
+               <span className={`text-xs font-semibold text-slate-400 uppercase tracking-wider ${sidebarCollapsed ? 'lg:hidden' : ''}`}>分类目录</span>
                <button 
                   onClick={() => { if(!authToken) setIsAuthOpen(true); else setIsCatManagerOpen(true); }}
                   className="p-1 text-slate-400 hover:text-blue-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded"
@@ -737,7 +737,8 @@ function App() {
                   <button
                     key={cat.id}
                     onClick={() => scrollToCategory(cat.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all group ${
+                    title={cat.name}
+                    className={`w-full flex items-center gap-3 px-4 ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} py-2.5 rounded-xl transition-all group ${
                       activeCategory === cat.id 
                         ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium' 
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
@@ -746,22 +747,22 @@ function App() {
                     <div className={`p-1.5 rounded-lg transition-colors flex items-center justify-center ${activeCategory === cat.id ? 'bg-blue-100 dark:bg-blue-800' : 'bg-slate-100 dark:bg-slate-800'}`}>
                       {isLocked ? <Lock size={16} className="text-amber-500" /> : (isEmoji ? <span className="text-base leading-none">{cat.icon}</span> : <Icon name={cat.icon} size={16} />)}
                     </div>
-                    <span className="truncate flex-1 text-left">{cat.name}</span>
-                    {activeCategory === cat.id && <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>}
+                    <span className={`truncate flex-1 text-left ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{cat.name}</span>
+                    {activeCategory === cat.id && <div className={`w-1.5 h-1.5 rounded-full bg-blue-500 ${sidebarCollapsed ? 'lg:hidden' : ''}`}></div>}
                   </button>
                 );
             })}
         </div>
 
-        <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
-            <div className="grid grid-cols-3 gap-2 mb-2">
+        <div className={`p-4 ${sidebarCollapsed ? 'lg:p-3 lg:pb-14' : ''} border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 shrink-0`}>
+            <div className={`grid grid-cols-3 ${sidebarCollapsed ? 'lg:grid-cols-1' : ''} gap-2 mb-2`}>
                 <button 
                     onClick={() => { if(!authToken) setIsAuthOpen(true); else setIsImportModalOpen(true); }}
                     className="flex flex-col items-center justify-center gap-1 p-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 transition-all"
                     title="导入书签"
                 >
                     <Upload size={14} />
-                    <span>导入</span>
+                    <span className={sidebarCollapsed ? 'lg:hidden' : ''}>导入</span>
                 </button>
                 <button 
                     onClick={() => { if(!authToken) setIsAuthOpen(true); else setIsBackupModalOpen(true); }}
@@ -769,7 +770,7 @@ function App() {
                     title="备份与恢复"
                 >
                     <CloudCog size={14} />
-                    <span>备份</span>
+                    <span className={sidebarCollapsed ? 'lg:hidden' : ''}>备份</span>
                 </button>
                 <button 
                     onClick={() => setIsSettingsModalOpen(true)}
@@ -777,27 +778,17 @@ function App() {
                     title="AI 设置"
                 >
                     <Settings size={14} />
-                    <span>设置</span>
+                    <span className={sidebarCollapsed ? 'lg:hidden' : ''}>设置</span>
                 </button>
             </div>
             
-            <div className="flex items-center justify-between text-xs px-2 mt-2">
+            <div className={`flex items-center justify-between text-xs px-2 mt-2 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
                <div className="flex items-center gap-1 text-slate-400">
                  {syncStatus === 'saving' && <Loader2 className="animate-spin w-3 h-3 text-blue-500" />}
                  {syncStatus === 'saved' && <CheckCircle2 className="w-3 h-3 text-green-500" />}
                  {syncStatus === 'error' && <AlertCircle className="w-3 h-3 text-red-500" />}
                  {authToken ? <span className="text-green-600">已同步</span> : <span className="text-amber-500">离线</span>}
                </div>
-               <a 
-                 href={GITHUB_REPO_URL} 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 className="flex items-center gap-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-                 title="Fork this project on GitHub"
-               >
-                 <GitFork size={14} />
-                 <span>Fork 项目</span>
-               </a>
             </div>
         </div>
       </aside>
@@ -810,6 +801,17 @@ function App() {
           <div className="flex items-center gap-4 flex-1">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-slate-600 dark:text-slate-300">
               <Menu size={24} />
+            </button>
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className={`hidden lg:flex w-9 h-9 items-center justify-center rounded-lg border transition-all ${
+                isGlassTheme
+                  ? 'bg-white/10 border-white/20 text-white/80 hover:bg-white/20 hover:text-white'
+                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:text-blue-600 hover:border-blue-300 dark:hover:text-blue-400'
+              }`}
+              title={sidebarCollapsed ? '展开侧栏' : '收起侧栏'}
+            >
+              {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
             </button>
 
             {/* Redesigned Search Bar */}
