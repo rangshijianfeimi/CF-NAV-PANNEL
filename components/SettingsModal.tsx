@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { X, Save, Bot, Key, Globe, Sparkles, PauseCircle, Wrench, Box, Copy, Check, List, GripVertical, Filter, LayoutTemplate, RefreshCw, Info, Download, Sidebar, Keyboard, MousePointerClick, AlertTriangle, Package, Zap, Menu } from 'lucide-react';
+import { X, Save, Bot, Key, Globe, Sparkles, PauseCircle, Wrench, Box, Copy, Check, List, GripVertical, Filter, LayoutTemplate, RefreshCw, Info, Download, Upload, Sidebar, Keyboard, MousePointerClick, AlertTriangle, Package, Zap, Menu } from 'lucide-react';
 import { AIConfig, LinkItem, Category, SiteSettings } from '../types';
 import { generateLinkDescription } from '../services/geminiService';
 import JSZip from 'jszip';
@@ -139,6 +139,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         const next = { ...prev, [key]: value };
         return next;
     });
+  };
+
+  const handleAvatarUpload = (file?: File) => {
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+          alert('请选择图片文件');
+          return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+          if (typeof reader.result === 'string') {
+              handleSiteChange('favicon', reader.result);
+          }
+      };
+      reader.readAsDataURL(file);
   };
 
   const handleSave = () => {
@@ -930,7 +945,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">网站图标 (Favicon URL)</label>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">网站头像 / 图标</label>
                                 <div className="flex gap-3 items-center">
                                     <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-600">
                                         {localSiteSettings.favicon ? <img src={localSiteSettings.favicon} className="w-full h-full object-cover"/> : <Globe size={20} className="text-slate-400"/>}
@@ -942,6 +957,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                                         placeholder="https://example.com/favicon.ico"
                                         className="flex-1 p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                                     />
+                                    <label className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 rounded-lg transition-colors cursor-pointer">
+                                        <Upload size={16} /> 上传
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => handleAvatarUpload(e.target.files?.[0])}
+                                        />
+                                    </label>
                                 </div>
                                 <div className="mt-3">
                                     <div className="flex items-center justify-between mb-2">
