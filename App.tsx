@@ -800,15 +800,15 @@ function App() {
         <header className={`h-16 px-4 lg:px-8 flex items-center justify-between ${isGlassTheme ? 'glass-panel text-white border-white/15' : 'bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700'} sticky top-0 z-30 shrink-0`}>
           <div className="flex items-center gap-4 flex-1">
             <button
-              onClick={() => setSidebarOpen(true)}
+              onClick={() => setSidebarOpen(!sidebarOpen)}
               className={`flex lg:hidden w-9 h-9 items-center justify-center rounded-lg border transition-all ${
                 isGlassTheme
                   ? 'bg-white/10 border-white/20 text-white/80 hover:bg-white/20 hover:text-white'
                   : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:text-blue-600 hover:border-blue-300 dark:hover:text-blue-400'
               }`}
-              title="展开侧栏"
+              title={sidebarOpen ? '收起侧栏' : '展开侧栏'}
             >
-              <PanelLeftClose size={18} />
+              {sidebarOpen ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
             </button>
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
