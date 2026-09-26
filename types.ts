@@ -22,6 +22,9 @@ export interface SiteSettings {
   navTitle: string;
   favicon: string;
   cardStyle: 'detailed' | 'simple';
+  theme?: 'default' | 'glass';
+  glassOpacity?: number;
+  backgroundImage?: string;
 }
 
 export interface AppState {
