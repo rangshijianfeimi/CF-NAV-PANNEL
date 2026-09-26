@@ -1,7 +1,0 @@
-name = "pannel"
-pages_build_output_dir = "./dist"
-compatibility_date = "2026-09-26"
-
-[[kv_namespaces]]
-binding = "CLOUDNAV_KV"
-id = "29e4bd0e99384baaa27042916192adf9"
