@@ -2,10 +2,7 @@ name: Upstream Sync
 
 on:
   schedule:
-    # 每 6 小时执行一次
     - cron: "0 */6 * * *"
-
-  # 支持手动执行
   workflow_dispatch:
 
 permissions:
@@ -17,124 +14,59 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ==========================================
-      # 1. Checkout 当前仓库
-      # ==========================================
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      # ==========================================
-      # 2. 配置 Git
-      # ==========================================
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      # ==========================================
-      # 3. 获取上游仓库
-      # ==========================================
-      - name: Fetch upstream
+      - name: Add upstream
         run: |
           git remote remove upstream 2>/dev/null || true
           git remote add upstream https://github.com/sese972010/CloudNav-.git
+
+      - name: Fetch upstream
+        run: |
           git fetch --no-tags upstream main
 
-      # ==========================================
-      # 4. 保存自己的 Workflow
-      #
-      # 防止上游仓库覆盖本仓库的 Actions
-      # ==========================================
-      - name: Backup local workflows
+      - name: Save local workflows
         run: |
-          mkdir -p /tmp/protected/.github/workflows
+          mkdir -p /tmp/local-workflows
 
-          if [ -f .github/workflows/upstream-sync.yml ]; then
-            cp .github/workflows/upstream-sync.yml \
-              /tmp/protected/.github/workflows/upstream-sync.yml
+          if [ -d .github/workflows ]; then
+            cp -a .github/workflows/. /tmp/local-workflows/
           fi
 
-          if [ -f .github/workflows/cloudflare-deploy.yml ]; then
-            cp .github/workflows/cloudflare-deploy.yml \
-              /tmp/protected/.github/workflows/cloudflare-deploy.yml
-          fi
-
-      # ==========================================
-      # 5. 删除当前仓库旧代码
-      #
-      # 保留：
-      # .github/workflows/upstream-sync.yml
-      # .github/workflows/cloudflare-deploy.yml
-      # ==========================================
-      - name: Remove old files
+      - name: Merge upstream
         run: |
-          git ls-files -z | while IFS= read -r -d '' file; do
-            case "$file" in
-              .github/workflows/upstream-sync.yml)
-                ;;
-              .github/workflows/cloudflare-deploy.yml)
-                ;;
-              *)
-                git rm -f -- "$file"
-                ;;
-            esac
-          done
+          git merge upstream/main --no-edit
 
-      # ==========================================
-      # 6. 导入上游最新代码
-      #
-      # 排除上游 .github
-      # 防止上游 Workflow 覆盖自己的 Workflow
-      # ==========================================
-      - name: Import upstream source
-        run: |
-          git archive --format=tar upstream/main \
-            ':(exclude).github' \
-            | tar -xf -
-
-      # ==========================================
-      # 7. 恢复自己的 Workflow
-      # ==========================================
       - name: Restore local workflows
         run: |
+          rm -rf .github/workflows
           mkdir -p .github/workflows
 
-          if [ -f /tmp/protected/.github/workflows/upstream-sync.yml ]; then
-            cp /tmp/protected/.github/workflows/upstream-sync.yml \
-              .github/workflows/upstream-sync.yml
+          if [ -d /tmp/local-workflows ]; then
+            cp -a /tmp/local-workflows/. .github/workflows/
           fi
 
-          if [ -f /tmp/protected/.github/workflows/cloudflare-deploy.yml ]; then
-            cp /tmp/protected/.github/workflows/cloudflare-deploy.yml \
-              .github/workflows/cloudflare-deploy.yml
-          fi
-
-      # ==========================================
-      # 8. 查看变更
-      # ==========================================
-      - name: Show changes
-        run: |
-          git status --short
-
-      # ==========================================
-      # 9. 提交
-      # ==========================================
-      - name: Commit changes
+      - name: Stage changes
         run: |
           git add -A
 
+      - name: Commit changes
+        run: |
           if git diff --cached --quiet; then
-            echo "No upstream changes."
+            echo "No changes to commit."
             exit 0
           fi
 
           git commit -m "chore: sync upstream CloudNav"
 
-      # ==========================================
-      # 10. 推送
-      # ==========================================
       - name: Push changes
         run: |
           git push origin HEAD:main
