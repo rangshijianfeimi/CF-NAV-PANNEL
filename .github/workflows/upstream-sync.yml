@@ -2,40 +2,54 @@ name: Upstream Sync
 
 on:
   schedule:
+    # 每 6 小时执行一次
     - cron: "0 */6 * * *"
+
+  # 支持手动执行
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  sync-upstream:
+  sync:
+    name: Sync Upstream
     runs-on: ubuntu-latest
 
     steps:
+      # ==========================================
+      # 1. Checkout 当前仓库
+      # ==========================================
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
+      # ==========================================
+      # 2. 配置 Git
+      # ==========================================
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Add and fetch upstream
+      # ==========================================
+      # 3. 获取上游仓库
+      # ==========================================
+      - name: Fetch upstream
         run: |
           git remote remove upstream 2>/dev/null || true
           git remote add upstream https://github.com/sese972010/CloudNav-.git
           git fetch --no-tags upstream main
 
-      - name: Backup protected files
+      # ==========================================
+      # 4. 保存自己的 Workflow
+      #
+      # 防止上游仓库覆盖本仓库的 Actions
+      # ==========================================
+      - name: Backup local workflows
         run: |
           mkdir -p /tmp/protected/.github/workflows
-
-          if [ -f wrangler.toml ]; then
-            cp wrangler.toml /tmp/protected/wrangler.toml
-          fi
 
           if [ -f .github/workflows/upstream-sync.yml ]; then
             cp .github/workflows/upstream-sync.yml \
@@ -47,12 +61,17 @@ jobs:
               /tmp/protected/.github/workflows/cloudflare-deploy.yml
           fi
 
-      - name: Remove old repository files
+      # ==========================================
+      # 5. 删除当前仓库旧代码
+      #
+      # 保留：
+      # .github/workflows/upstream-sync.yml
+      # .github/workflows/cloudflare-deploy.yml
+      # ==========================================
+      - name: Remove old files
         run: |
           git ls-files -z | while IFS= read -r -d '' file; do
             case "$file" in
-              wrangler.toml)
-                ;;
               .github/workflows/upstream-sync.yml)
                 ;;
               .github/workflows/cloudflare-deploy.yml)
@@ -63,36 +82,46 @@ jobs:
             esac
           done
 
+      # ==========================================
+      # 6. 导入上游最新代码
+      #
+      # 排除上游 .github
+      # 防止上游 Workflow 覆盖自己的 Workflow
+      # ==========================================
       - name: Import upstream source
         run: |
           git archive --format=tar upstream/main \
-            ':(exclude)wrangler.toml' \
             ':(exclude).github' \
             | tar -xf -
 
-      - name: Restore protected files
+      # ==========================================
+      # 7. 恢复自己的 Workflow
+      # ==========================================
+      - name: Restore local workflows
         run: |
-          if [ -f /tmp/protected/wrangler.toml ]; then
-            cp /tmp/protected/wrangler.toml wrangler.toml
-          fi
+          mkdir -p .github/workflows
 
           if [ -f /tmp/protected/.github/workflows/upstream-sync.yml ]; then
-            mkdir -p .github/workflows
             cp /tmp/protected/.github/workflows/upstream-sync.yml \
               .github/workflows/upstream-sync.yml
           fi
 
           if [ -f /tmp/protected/.github/workflows/cloudflare-deploy.yml ]; then
-            mkdir -p .github/workflows
             cp /tmp/protected/.github/workflows/cloudflare-deploy.yml \
               .github/workflows/cloudflare-deploy.yml
           fi
 
-      - name: Show changed files
+      # ==========================================
+      # 8. 查看变更
+      # ==========================================
+      - name: Show changes
         run: |
           git status --short
 
-      - name: Commit and push changes
+      # ==========================================
+      # 9. 提交
+      # ==========================================
+      - name: Commit changes
         run: |
           git add -A
 
@@ -101,5 +130,11 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore: sync upstream sese972010/CloudNav"
+          git commit -m "chore: sync upstream CloudNav"
+
+      # ==========================================
+      # 10. 推送
+      # ==========================================
+      - name: Push changes
+        run: |
           git push origin HEAD:main
