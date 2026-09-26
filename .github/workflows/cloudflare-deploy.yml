@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   deploy:
-    name: pannel
+    name: Build and Deploy
     runs-on: ubuntu-latest
 
     if: >
@@ -27,52 +27,31 @@ jobs:
       }}
 
     steps:
-      # ==========================================
-      # 1. 获取最新代码
-      # ==========================================
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 1
 
-      # ==========================================
-      # 2. 安装 Node.js
-      # ==========================================
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 22
 
-      # ==========================================
-      # 3. 安装依赖
-      # ==========================================
       - name: Install dependencies
         run: npm install
 
-      # ==========================================
-      # 4. 构建 Vite 项目
-      # ==========================================
       - name: Build
         run: npm run build
 
-      # ==========================================
-      # 5. 检查 dist
-      # ==========================================
       - name: Check build output
         run: |
-          echo "===== dist directory ====="
+          echo "===== dist ====="
           ls -lah dist
 
-          echo "===== dist files ====="
-          find dist -maxdepth 2 -type f | sort
-
-      # ==========================================
-      # 6. 部署 Cloudflare Pages
-      # ==========================================
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=cloudnav
+          command: pages deploy dist --project-name=pannel
